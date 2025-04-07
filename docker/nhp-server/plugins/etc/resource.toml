@@ -1,0 +1,17 @@
+# List resources id and their sub-fields here
+["mini-app-demo"]
+OpenTime = 28800
+AppKey = "mini-app-demo-cRWSLDc8A8EZj2Ab"
+AppSecret = "P68u16QJf6k4Q6tKL1f0Nu49otdxC85VFSWP8yoG"
+RedirectUrl = "https://www.baidu.com"
+
+["mini-app-demo".Resources."apiServer"]
+ACId = "huzhou-dev-door-01"
+Hostname = "apidemo.opennhp.cn"
+Addr.Ip = "220.191.216.236"
+Addr.Port = 443
+Addr.Protocol = ""
+
+["mini-app-demo".ExInfo]
+Title = "ZYDD Demo Login"
+ClientId = "ZYDD1"

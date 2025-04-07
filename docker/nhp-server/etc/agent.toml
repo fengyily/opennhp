@@ -1,0 +1,7 @@
+# list the agent peers for the server under [[Agents]] table
+
+# PubKeyBase64: public key for the agent in base64 format.
+# ExpireTime (epoch timestamp in seconds): peer key validation will fail when it expires.
+[[Agents]]
+PubKeyBase64 = "28V3/DzE7yCWWpD2fDMGbmZ4U2jYXgArIzSEyZo6iz38+mvyXAtwP5VSUyUbhmjS6xVXxCtgTuzqaqRQ1ZSODQ=="
+ExpireTime = 1924991999
