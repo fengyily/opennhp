@@ -1,0 +1,12 @@
+# List resources id and their sub-fields here
+["mini-app-demo"]
+OpenTime = 28800
+AppKey = "zzd-mini-app-demo_dingoa-4s4f65elNhEE0K82qy64Yy4b4IcSB6fj7fi22yy"
+AppSecret = "52GhySty9aS32eXugKnKkkPD7iYaaF9lx83a5243"
+
+["mini-app-demo".Resources."apiServer"]
+ACId = "huzhou-dev-door-01"
+Hostname = "apidemo.opennhp.cn"
+Addr.Ip = "220.191.216.236"
+Addr.Port = 443
+Addr.Protocol = ""
