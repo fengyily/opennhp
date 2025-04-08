@@ -7,6 +7,7 @@
 # OrganizationId: specify the organization id this agent represents.
 # LogLevel: 0: silent, 1: error, 2: info, 3: audit, 4: debug, 5: trace.
 PrivateKeyBase64 = "x/W6vWNmeU11Zk1HKUw7iMMDY7qzNg7L3cdvrDra2G8="
+ACId = "testAC-1"
 DefaultCipherScheme = 0
 UserId = "agent-0"
 OrganizationId = "opennhp.cn"

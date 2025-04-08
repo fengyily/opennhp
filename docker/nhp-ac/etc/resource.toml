@@ -6,4 +6,4 @@
 [[Resources]]
 AuthServiceId = "example"
 ResourceId = "demo"
-ServerAddr = "192.168.56.101"
+ServerAddr = "172.19.0.3"

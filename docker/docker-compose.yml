@@ -15,6 +15,7 @@ services:
       - ac
     volumes:
       - ${PWD}/nhp-server/etc/:/nhp-server/etc/:rw
+      - ${PWD}/nhp-server/plugins/example/etc/:/nhp-server/plugins/example/etc/:rw
       - ${PWD}/nhp-server/logs/:/nhp-server/logs/:rw
     ports:
       - "62206:62206/udp"
@@ -57,6 +58,6 @@ services:
     restart: always
     volumes:
       - ${PWD}/nhp-agent/etc/:/nhp-agent/etc/:rw
-      - ${PWD}/nhp-agent/logs/:/nhp-agent/logs/:rw
+#      - ${PWD}/nhp-agent/logs/:/nhp-agent/logs/:rw
     networks:
       - server
