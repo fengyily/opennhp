@@ -12,7 +12,7 @@ PrivateKeyBase64 = "I9UzYO3skKYmDykz9DRBbV+cEebSw/L5yIvzHI4jz+o="
 DefaultCipherScheme = 0
 ListenIp = "0.0.0.0"    # empty for ipv4 + ipv6, "0.0.0.0" for ipv4 only
 ListenPort = 62206
-Hostname = "localhost" # the hostname of NHP-Server
+Hostname = "localhost:62206" # the hostname of NHP-Server
 LogLevel = 4
 DisableAgentValidation = false
 

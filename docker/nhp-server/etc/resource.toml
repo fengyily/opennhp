@@ -7,3 +7,5 @@
 PluginPath = "example/example.so"
 ["zydd"]
 PluginPath = "zydd/zydd.so"
+["passcode"]
+PluginPath = "passcode/passcode.so"

@@ -30,16 +30,18 @@ RUN go version && \
     gcc --version && \
     make --version && sleep 10
 
-# 设置工作目录
-WORKDIR /nhp-server
+# # 设置工作目录
+# WORKDIR /nhp-server
 
-COPY .. .
+# COPY ../opennhp/ .
 
-RUN cd /nhp-server && go mod tidy && export GOARCH=arm64 && export CGO_ENABLED=1 && make
+# ## 添加插件
+# COPY ../nhp-plugins-passcode /nhp-server/server/plugins/nhp-plugins-passcode/
+# RUN cd /nhp-server && go mod tidy && export GOARCH=arm64 && export CGO_ENABLED=1 && make
 
 #CMD ["./release/nhp-server/nhp-serverd", "run"]
 #CMD ["/bin/bash"]
-#CMD ["tail", "-f", "/dev/null"]
+CMD ["tail", "-f", "/dev/null"]
 
 # cd /opennhp/docker
-# docker build -t opennhp-base:latest -f Dockerfile.base ..
+# docker build -t opennhp-base:latest -f Dockerfile.base ../..

@@ -4,11 +4,19 @@ networks:
   agent:
 
 services:
+  # nhp-base:
+  #   image: opennhp-base
+  #   build: 
+  #     context: ..
+  #     dockerfile: ./docker/Dockerfile.base
+  #   container_name: nhp-base
+  #   restart: always
+
   nhp-server:
     image: opennhp-server
     build: 
-      context: ..
-      dockerfile: ./docker/Dockerfile.server
+      context: ../..
+      dockerfile: ./opennhp/docker/Dockerfile.server
     container_name: nhp-server
     restart: always
     networks:
@@ -16,6 +24,7 @@ services:
     volumes:
       - ${PWD}/nhp-server/etc/:/nhp-server/etc/:rw
       - ${PWD}/nhp-server/plugins/example/etc/:/nhp-server/plugins/example/etc/:rw
+      - ${PWD}/nhp-server/plugins/passcode/etc/:/nhp-server/plugins/passcode/etc/:rw
       - ${PWD}/nhp-server/logs/:/nhp-server/logs/:rw
     ports:
       - "62206:62206/udp"
