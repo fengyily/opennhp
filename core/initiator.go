@@ -13,7 +13,7 @@ import (
 
 	"github.com/OpenNHP/opennhp/core/scheme/curve"
 	"github.com/OpenNHP/opennhp/core/scheme/gmsm"
-	"github.com/OpenNHP/opennhp/log"
+	"github.com/OpenNHP/opennhp/sdk/log"
 )
 
 type InitiatorScheme interface {

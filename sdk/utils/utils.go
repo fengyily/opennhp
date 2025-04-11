@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/OpenNHP/opennhp/log"
+	"github.com/OpenNHP/opennhp/sdk/log"
 )
 
 func GetRandomUint32() (r uint32) {

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/OpenNHP/opennhp/log"
+	"github.com/OpenNHP/opennhp/sdk/log"
 )
 
 func TestLog(t *testing.T) {

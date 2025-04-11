@@ -14,10 +14,10 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/OpenNHP/opennhp/common"
 	"github.com/OpenNHP/opennhp/core/scheme/curve"
 	"github.com/OpenNHP/opennhp/core/scheme/gmsm"
-	"github.com/OpenNHP/opennhp/log"
+	"github.com/OpenNHP/opennhp/sdk/common"
+	"github.com/OpenNHP/opennhp/sdk/log"
 )
 
 type ResponderScheme interface {

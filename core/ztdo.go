@@ -11,7 +11,7 @@ import (
 
 	"encoding/json"
 
-	"github.com/OpenNHP/opennhp/utils"
+	"github.com/OpenNHP/opennhp/sdk/utils"
 	"github.com/google/uuid"
 )
 

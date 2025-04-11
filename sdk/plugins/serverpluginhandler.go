@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"plugin"
 
-	"github.com/OpenNHP/opennhp/common"
-	"github.com/OpenNHP/opennhp/log"
-	"github.com/OpenNHP/opennhp/utils"
+	"github.com/OpenNHP/opennhp/sdk/common"
+	"github.com/OpenNHP/opennhp/sdk/log"
+	"github.com/OpenNHP/opennhp/sdk/utils"
 	"github.com/gin-gonic/gin"
 )
 

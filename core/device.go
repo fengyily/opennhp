@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/OpenNHP/opennhp/log"
+	"github.com/OpenNHP/opennhp/sdk/log"
 )
 
 type DeviceTypeEnum = int

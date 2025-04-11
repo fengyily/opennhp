@@ -10,11 +10,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/OpenNHP/opennhp/common"
 	"github.com/OpenNHP/opennhp/core"
-	"github.com/OpenNHP/opennhp/log"
-	"github.com/OpenNHP/opennhp/plugins"
-	"github.com/OpenNHP/opennhp/utils"
+	"github.com/OpenNHP/opennhp/sdk/common"
+	"github.com/OpenNHP/opennhp/sdk/log"
+	"github.com/OpenNHP/opennhp/sdk/plugins"
+	"github.com/OpenNHP/opennhp/sdk/utils"
 	"github.com/OpenNHP/opennhp/version"
 )
 

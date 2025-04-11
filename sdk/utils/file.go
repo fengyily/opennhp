@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/OpenNHP/opennhp/log"
+	"github.com/OpenNHP/opennhp/sdk/log"
 	"github.com/fsnotify/fsnotify"
 )
 

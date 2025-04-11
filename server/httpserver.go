@@ -15,9 +15,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/OpenNHP/opennhp/common"
-	"github.com/OpenNHP/opennhp/log"
-	"github.com/OpenNHP/opennhp/plugins"
+	"github.com/OpenNHP/opennhp/sdk/common"
+	"github.com/OpenNHP/opennhp/sdk/log"
+	"github.com/OpenNHP/opennhp/sdk/plugins"
 	"github.com/OpenNHP/opennhp/version"
 )
 

@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"unsafe"
 
-	"github.com/OpenNHP/opennhp/utils"
+	"github.com/OpenNHP/opennhp/sdk/utils"
 )
 
 const (

@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/OpenNHP/opennhp/common"
 	"github.com/OpenNHP/opennhp/core"
-	"github.com/OpenNHP/opennhp/log"
+	"github.com/OpenNHP/opennhp/sdk/common"
+	"github.com/OpenNHP/opennhp/sdk/log"
 )
 
 func (a *UdpAgent) Knock(res *KnockTarget) (ackMsg *common.ServerKnockAckMsg, err error) {

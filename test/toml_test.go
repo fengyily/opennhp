@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/OpenNHP/opennhp/ac"
-	"github.com/OpenNHP/opennhp/common"
 	"github.com/OpenNHP/opennhp/core"
+	"github.com/OpenNHP/opennhp/sdk/common"
 	"github.com/fsnotify/fsnotify"
 	toml "github.com/pelletier/go-toml/v2"
 	"github.com/spf13/viper"

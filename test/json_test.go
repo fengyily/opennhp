@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/OpenNHP/opennhp/common"
+	"github.com/OpenNHP/opennhp/sdk/common"
 	"github.com/OpenNHP/opennhp/server"
 )
 

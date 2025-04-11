@@ -10,9 +10,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/OpenNHP/opennhp/common"
 	"github.com/OpenNHP/opennhp/core"
-	"github.com/OpenNHP/opennhp/utils"
+	"github.com/OpenNHP/opennhp/sdk/common"
+	"github.com/OpenNHP/opennhp/sdk/utils"
 )
 
 // The Config structure is used to represent the structure of the configuration file

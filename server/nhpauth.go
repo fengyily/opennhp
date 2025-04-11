@@ -4,9 +4,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 
-	"github.com/OpenNHP/opennhp/common"
 	"github.com/OpenNHP/opennhp/core"
-	"github.com/OpenNHP/opennhp/log"
+	"github.com/OpenNHP/opennhp/sdk/common"
+	"github.com/OpenNHP/opennhp/sdk/log"
 )
 
 // HandleKnockRequest

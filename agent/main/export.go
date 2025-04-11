@@ -13,8 +13,8 @@ import (
 	"unsafe"
 
 	"github.com/OpenNHP/opennhp/agent"
-	"github.com/OpenNHP/opennhp/common"
 	"github.com/OpenNHP/opennhp/core"
+	"github.com/OpenNHP/opennhp/sdk/common"
 )
 
 var gAgentInstance *agent.UdpAgent
@@ -83,7 +83,8 @@ func nhp_agent_close() {
 // Return:
 // -1: Uninitialized error
 // >=0: The number of resources requested to knock by the knocking thread at the time of the call
-//      (knocking resources will be synchronized with changes in the configuration in workingdir/etc/resource.toml).
+//
+//	(knocking resources will be synchronized with changes in the configuration in workingdir/etc/resource.toml).
 //
 //export nhp_agent_knockloop_start
 func nhp_agent_knockloop_start() C.int {

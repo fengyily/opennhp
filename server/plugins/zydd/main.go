@@ -12,10 +12,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/OpenNHP/opennhp/common"
-	nhplog "github.com/OpenNHP/opennhp/log"
-	"github.com/OpenNHP/opennhp/plugins"
-	"github.com/OpenNHP/opennhp/utils"
+	"github.com/OpenNHP/opennhp/sdk/common"
+	nhplog "github.com/OpenNHP/opennhp/sdk/log"
+	"github.com/OpenNHP/opennhp/sdk/plugins"
+	"github.com/OpenNHP/opennhp/sdk/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/pelletier/go-toml/v2"
 )

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/OpenNHP/opennhp/log"
-	"github.com/OpenNHP/opennhp/utils"
+	"github.com/OpenNHP/opennhp/sdk/log"
+	"github.com/OpenNHP/opennhp/sdk/utils"
 )
 
 func TestUUID(t *testing.T) {

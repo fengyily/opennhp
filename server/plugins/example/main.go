@@ -10,10 +10,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/OpenNHP/opennhp/common"
-	nhplog "github.com/OpenNHP/opennhp/log"
-	"github.com/OpenNHP/opennhp/plugins"
-	"github.com/OpenNHP/opennhp/utils"
+	"github.com/OpenNHP/opennhp/sdk/common"
+	nhplog "github.com/OpenNHP/opennhp/sdk/log"
+	"github.com/OpenNHP/opennhp/sdk/plugins"
+	"github.com/OpenNHP/opennhp/sdk/utils"
 	"github.com/gin-gonic/gin"
 
 	toml "github.com/pelletier/go-toml/v2"
@@ -321,7 +321,7 @@ func AuthWithNHP(req *common.NhpAuthRequest, helper *plugins.NhpServerPluginHelp
 func corsMiddleware(ctx *gin.Context) {
 	originResource := ctx.Request.Header.Get("Origin")
 
-	if (originResource != "") {
+	if originResource != "" {
 		// HTTP headers for CORS
 		ctx.Writer.Header().Set("Access-Control-Allow-Origin", originResource) // allow cross-origin resource sharing
 	}
