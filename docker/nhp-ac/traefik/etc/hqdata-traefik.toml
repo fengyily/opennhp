@@ -1,0 +1,14 @@
+[entryPoints]
+  [entryPoints.web]
+    address = ":80"
+
+[providers.file]
+  filename = "hqdata-provider.toml"
+
+[experimental.localPlugins.hqdatamiddleware]
+  moduleName = "github.com/traefik/hqdatamiddleware"
+
+[log]
+  level = "TRACE"
+
+  # Js147258!

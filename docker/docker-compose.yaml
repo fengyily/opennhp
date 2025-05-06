@@ -1,16 +1,9 @@
 networks:
+  nginx:
   server:
   ac:
 
 services:
-  # nhp-base:
-  #   image: opennhp-base
-  #   build: 
-  #     context: ..
-  #     dockerfile: ./docker/Dockerfile.base
-  #   container_name: nhp-base
-  #   restart: always
-
   nhp-server:
     image: opennhp-server
     build: 
@@ -19,11 +12,13 @@ services:
     container_name: nhp-server
     restart: always
     networks:
-      - ac
+      - server
+      - nginx
     volumes:
       - ./nhp-server/etc/:/nhp-server/etc/:rw
-      - ./nhp-server/templates/example/:/nhp-server/templates/example/:rw
+      - ./nhp-server/templates/:/nhp-server/templates/:rw
       - ./nhp-server/plugins/example/etc/:/nhp-server/plugins/example/etc/:rw
+      - ./nhp-server/plugins/passcode/etc/:/nhp-server/plugins/passcode/etc/:rw
       - ./nhp-server/logs/:/nhp-server/logs/:rw
     ports:
       - "62206:62206/udp"
@@ -33,10 +28,13 @@ services:
     image: opennhp-ac
     container_name: nhp-ac
     build: 
-      context: ..
-      dockerfile: ./docker/Dockerfile.ac
+      context: ../../..
+      dockerfile: ./fengyily/opennhp/docker/Dockerfile.ac
     volumes:
+      - ../../../traefik-plugins/traefik-plugins-hqdata/plugins-local/:/opt/traefik/plugins-local/
       - ./nhp-ac/etc/:/nhp-ac/etc/
+      - ./nhp-ac/traefik/etc/hqdata-traefik.toml:/opt/traefik/hqdata-traefik.toml
+      - ./nhp-ac/traefik/etc/hqdata-provider.toml:/opt/traefik/hqdata-provider.toml
       - ./nhp-ac/logs/:/nhp-ac/logs/
     restart: always
     cap_add:
@@ -44,9 +42,10 @@ services:
     depends_on:
       - nhp-server
     networks:
-      - server
-    ports:
-      - "80:80"
+      - ac
+      - nginx
+    # ports:
+    #   - "80:80"
 
   nhp-agent:
     image: opennhp-agent
@@ -59,4 +58,49 @@ services:
       - ./nhp-agent/etc/:/nhp-agent/etc/:rw
       - ./nhp-agent/logs/:/nhp-agent/logs/:rw
     networks:
-      - server
+      - ac
+
+  nhp-app:
+    image: nginx:latest
+    container_name: nhp-app
+    restart: always
+    # ports:
+    #   - "8080:80"
+    networks:
+      - ac
+
+  nhp-helloworld:
+    image: helloworld:latest
+    build: 
+      context: .
+      dockerfile: ./Dockerfile.app
+    container_name: nhp-helloworld
+    restart: always
+    ports:
+      - "8090:8080"
+    networks:
+      - ac
+      - nginx
+
+  nhp-enter:
+    image: nginx:latest
+    container_name: nhp-enter
+    restart: always
+    ports:
+      - "443:443"
+      - "80:80"
+    networks:
+    depends_on:
+      - nhp-server
+      - nhp-ac
+    volumes:
+      - ./nhp-enter-nginx.conf:/etc/nginx/nginx.conf:rw
+      - ./certs/server.crt:/cert.pem:rw
+      - ./certs/server.key:/key.pem:rw
+  # nhp-base:
+  #   image: opennhp-base
+  #   build: 
+  #     context: ..
+  #     dockerfile: ./docker/Dockerfile.base
+  #   container_name: nhp-base
+  #   restart: always
