@@ -90,6 +90,7 @@ services:
       - "443:443"
       - "80:80"
     networks:
+      - nginx
     depends_on:
       - nhp-server
       - nhp-ac

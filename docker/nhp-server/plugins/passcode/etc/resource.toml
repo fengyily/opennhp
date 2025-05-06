@@ -8,8 +8,8 @@ CookieDomain = "opennhp.cn"
 ["demo".Resources."demoServer"]
 ACId = "testAC-1"
 Hostname = "app.opennhp.cn"
-Addr.Ip = "172.22.0.5"
-Addr.Port = 443 # empty or 0 for all ports
+Addr.Ip = "172.22.0.2"
+Addr.Port = 80 # empty or 0 for all ports
 Addr.Protocol = ""
 #PrivIp = "172.16.81.11"
 PortSuffix = false
