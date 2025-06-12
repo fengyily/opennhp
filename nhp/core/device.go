@@ -10,6 +10,7 @@ import (
 	"time"
 
 	log "github.com/OpenNHP/opennhp/nhp/log"
+	"github.com/google/uuid"
 )
 
 type DeviceTypeEnum = int
@@ -124,8 +125,9 @@ func (d *Device) SetOption(option DeviceOptions) {
 
 func (d *Device) Start() {
 	cpus := runtime.NumCPU()
-	d.wg.Add(2 * cpus)
-	for i := 0; i < cpus; i++ {
+
+	for i := 0; i < cpus*50; i++ {
+		d.wg.Add(2)
 		go d.msgToPacketRoutine(i)
 		go d.packetToMsgRoutine(i)
 	}
@@ -248,7 +250,7 @@ func (d *Device) msgToPacketRoutine(id int) {
 						transactionId: mad.header.Counter(),
 						connData:      mad.connData,
 						mad:           mad,
-						NextPacketCh:  make(chan *Packet),
+						NextPacketCh:  make(chan *Packet, 1),
 						timeout:       d.LocalTransactionTimeout(),
 					}
 					d.AddLocalTransaction(t)
@@ -316,6 +318,7 @@ func (d *Device) packetToMsgRoutine(id int) {
 	log.Info("packetToMsgRoutine %d: start", id)
 
 	for {
+		uuidStr := uuid.New().String()
 		select {
 		case <-d.signals.stop:
 			return
@@ -356,22 +359,22 @@ func (d *Device) packetToMsgRoutine(id int) {
 
 				ppd, err = d.createPacketParserData(pd)
 				if err != nil {
-					log.Debug("packetToMsgRoutine %d: [%s] packet precheck failed: %v", id, msgType, err)
-					log.Evaluate("packetToMsgRoutine %d: [%s] packet precheck failed: %v", id, msgType, err)
+					log.Error("packetToMsgRoutine %d:traceId[%s] [%s] packet precheck failed: %v", id, uuidStr, msgType, err)
+					log.Evaluate("packetToMsgRoutine %d:traceId[%s] [%s] packet precheck failed: %v", id, uuidStr, msgType, err)
 					return
 				}
 
 				err = ppd.validatePeer()
 				if err != nil {
-					log.Debug("packetToMsgRoutine %d: [%s] packet validation failed: %v", id, msgType, err)
-					log.Evaluate("packetToMsgRoutine %d: [%s] packet validation failed: %v", id, msgType, err)
+					log.Error("packetToMsgRoutine %d:traceId[%s][%s] packet validation failed: %v", id, uuidStr, msgType, err)
+					log.Evaluate("packetToMsgRoutine %d:traceId[%s][%s] packet validation failed: %v", id, uuidStr, msgType, err)
 					return
 				}
 
 				err = ppd.decryptBody()
 				if err != nil {
-					log.Error("packetToMsgRoutine: %d: [%s] packet decryption failed: %v", id, msgType, err)
-					log.Evaluate("packetToMsgRoutine: %d: [%s] packet decryption failed: %v", id, msgType, err)
+					log.Error("packetToMsgRoutine: %d:traceId[%s][%s] packet decryption failed: %v", id, uuidStr, msgType, err)
+					log.Evaluate("packetToMsgRoutine: %d:traceId[%s][%s] packet decryption failed: %v", id, uuidStr, msgType, err)
 					return
 				}
 
@@ -403,7 +406,7 @@ func (d *Device) packetToMsgRoutine(id int) {
 						transactionId: ppd.SenderTrxId,
 						connData:      ppd.ConnData,
 						parserData:    ppd, // ppd is owned and to be destroyed by transaction
-						NextMsgCh:     make(chan *MsgData),
+						NextMsgCh:     make(chan *MsgData, 1),
 						timeout:       d.RemoteTransactionTimeout(),
 					}
 					ppd.ConnData.AddRemoteTransaction(t)
@@ -465,16 +468,28 @@ func (d *Device) PacketToMsg(pd *PacketData) (ppd *PacketParserData, err error) 
 }
 
 func (d *Device) SendMsgToPacket(md *MsgData) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Error("SendMsgToPacket panic: %v", r)
+		}
+	}()
+
 	select {
 	case d.msgToPacketQueue <- md:
 		// process encryption and send encrypted packet via connection
 	default:
 		// discard
-		log.Critical("msgToPacketQueue is full, discarding message")
+		log.Critical("msgToPacketQueue recover send message")
 	}
 }
 
 func (d *Device) RecvPacketToMsg(pd *PacketData) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Error("RecvPacketToMsg panic: %v", r)
+		}
+	}()
+
 	select {
 	case d.packetToMsgQueue <- pd:
 		// process decryption and deliver plain text message to DecryptedMessageCh

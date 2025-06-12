@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime/pprof"
+	"runtime/trace"
 	"syscall"
 
 	"github.com/OpenNHP/opennhp/endpoints/server"
@@ -27,6 +28,7 @@ func main() {
 			&cli.BoolFlag{Name: "prof", Value: false, DisableDefaultText: true, Usage: "running profiling for the server"},
 		},
 		Action: func(c *cli.Context) error {
+			fmt.Printf("enable prof %v\n", c.Bool("prof"))
 			return runApp(c.Bool("prof"))
 		},
 	}
@@ -77,6 +79,10 @@ func runApp(enableProfiling bool) error {
 			pprof.StartCPUProfile(f)
 			defer pprof.StopCPUProfile()
 		}
+
+		f, _ = os.Create("trace.out")
+		trace.Start(f)
+		defer trace.Stop()
 	}
 
 	us := server.UdpServer{}

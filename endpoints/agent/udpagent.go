@@ -472,7 +472,7 @@ func (a *UdpAgent) connectionRoutine(conn *UdpConn) {
 				transactionId := pkt.Counter()
 				transaction := a.device.FindLocalTransaction(transactionId)
 				if transaction != nil {
-					transaction.NextPacketCh <- pkt
+					transaction.NextPacket(pkt)
 					continue
 				}
 			}

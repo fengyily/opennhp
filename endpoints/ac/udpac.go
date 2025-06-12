@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -163,12 +164,15 @@ func (a *UdpAC) Start(dirPath string, logLevel int) (err error) {
 	a.device.Start()
 
 	// start ac routines
-	a.wg.Add(4)
+	a.wg.Add(3)
 	go a.tokenStoreRefreshRoutine()
 	go a.sendMessageRoutine()
-	go a.recvMessageRoutine()
-	go a.maintainServerConnectionRoutine()
 
+	for i := 0; i < runtime.NumCPU()*100; i++ {
+		a.wg.Add(1)
+		go a.recvMessageRoutine()
+	}
+	go a.maintainServerConnectionRoutine()
 	a.running.Store(true)
 	return nil
 }
@@ -220,8 +224,8 @@ func (a *UdpAC) newConnection(addr *net.UDPAddr) (conn *UdpConn) {
 		LocalAddr:            localAddr,
 		RemoteAddr:           addr,
 		TimeoutMs:            DefaultConnectionTimeoutMs,
-		SendQueue:            make(chan *core.Packet, PacketQueueSizePerConnection),
-		RecvQueue:            make(chan *core.Packet, PacketQueueSizePerConnection),
+		SendQueue:            make(chan *core.Packet, core.SendQueueSize),
+		RecvQueue:            make(chan *core.Packet, core.RecvQueueSize),
 		BlockSignal:          make(chan struct{}),
 		SetTimeoutSignal:     make(chan struct{}),
 		StopSignal:           make(chan struct{}),
@@ -423,7 +427,7 @@ func (a *UdpAC) connectionRoutine(conn *UdpConn) {
 				transactionId := pkt.Counter()
 				transaction := a.device.FindLocalTransaction(transactionId)
 				if transaction != nil {
-					transaction.NextPacketCh <- pkt
+					transaction.NextPacket(pkt)
 					continue
 				}
 			}
@@ -465,8 +469,9 @@ func (a *UdpAC) recvMessageRoutine() {
 			switch ppd.HeaderType {
 			case core.NHP_AOP:
 				// deal with NHP_AOP message
-				a.wg.Add(1)
-				go a.HandleUdpACOperations(ppd)
+				// a.wg.Add(1)
+				// go a.HandleUdpACOperations(ppd)
+				a.HandleUdpACOperations(ppd)
 			}
 		}
 	}
@@ -648,9 +653,9 @@ func (a *UdpAC) serverDiscovery(server *core.UdpPeer, discoveryRoutineWg *sync.W
 							if conn != nil {
 								log.Info("server discovery failed, close local connection: %s", conn.ConnData.LocalAddr.String())
 								delete(a.remoteConnectionMap, addrStr)
+								conn.Close()
 							}
 							a.remoteConnectionMutex.Unlock()
-							conn.Close()
 						}
 						log.Error("ac(%s#%d)[ACOnline] reporting to server %s failed", acId, aolMd.TransactionId, addrStr)
 					}

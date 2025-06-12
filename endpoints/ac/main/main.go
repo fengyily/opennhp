@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime/pprof"
+	"runtime/trace"
 	"syscall"
 
 	"github.com/OpenNHP/opennhp/endpoints/ac"
@@ -22,8 +24,11 @@ func main() {
 	runCmd := &cli.Command{
 		Name:  "run",
 		Usage: "create and run ac process for NHP protocol",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{Name: "prof", Value: false, DisableDefaultText: true, Usage: "running profiling for the server"},
+		},
 		Action: func(c *cli.Context) error {
-			return runApp()
+			return runApp(c.Bool("prof"))
 		},
 	}
 
@@ -53,18 +58,30 @@ func main() {
 		runCmd,
 		keygenCmd,
 	}
+
 	if err := app.Run(os.Args); err != nil {
 		panic(err)
 	}
 }
 
-func runApp() error {
+func runApp(enableProfiling bool) error {
 	exeFilePath, err := os.Executable()
 	if err != nil {
 		return err
 	}
 	exeDirPath := filepath.Dir(exeFilePath)
+	if enableProfiling {
+		// Start profiling
+		f, err := os.Create(filepath.Join(exeDirPath, "cpu.prf"))
+		if err == nil {
+			pprof.StartCPUProfile(f)
+			defer pprof.StopCPUProfile()
+		}
 
+		f, _ = os.Create("trace.out")
+		trace.Start(f)
+		defer trace.Stop()
+	}
 	d := &ac.UdpAC{}
 	err = d.Start(exeDirPath, 4)
 	if err != nil {
