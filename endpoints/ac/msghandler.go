@@ -24,7 +24,7 @@ const (
 )
 
 func (a *UdpAC) HandleUdpACOperations(ppd *core.PacketParserData) (err error) {
-	defer a.wg.Done()
+	//defer a.wg.Done()
 
 	acId := a.config.ACId
 	dopMsg := &common.ServerACOpsMsg{}
@@ -82,7 +82,7 @@ func (a *UdpAC) HandleUdpACOperations(ppd *core.PacketParserData) (err error) {
 		return err
 	}
 
-	transaction.NextMsgCh <- md
+	transaction.NextMsg(md)
 
 	return err
 }
@@ -93,6 +93,7 @@ func (a *UdpAC) HandleAccessControl(au *common.AgentUser, srcAddrs []*common.Net
 	} else {
 		artMsg = artMsgIn
 	}
+
 	// process ac operation
 	tempOpenTimeSec := TempPortOpenTime
 	// 1 sec timeout means exit defaultset access, so exit tempset too
@@ -538,6 +539,7 @@ func (a *UdpAC) HandleAccessControl(au *common.AgentUser, srcAddrs []*common.Net
 			log.Error("[HandleAccessControl] unsupported FilterMode: %d (expected 0=IPTABLES or 1=EBPFXDP)", a.config.FilterMode)
 			return
 		}
+
 		log.Info("[HandleAccessControl] open temporary udp port on %s", tladdr.String())
 
 		tempEntry := &AccessEntry{
@@ -708,6 +710,7 @@ func (a *UdpAC) tcpTempAccessHandler(listener *net.TCPListener, timeoutSec int, 
 func (a *UdpAC) udpTempAccessHandler(conn *net.UDPConn, timeoutSec int, dstAddrs []*common.NetAddress, openTimeSec int) {
 	defer a.wg.Done()
 	defer conn.Close()
+
 	// listen to accept and handle only one incoming connection
 	startTime := time.Now()
 	deadlineTime := startTime.Add(time.Duration(timeoutSec) * time.Second)

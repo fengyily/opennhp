@@ -4,13 +4,15 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/OpenNHP/opennhp/nhp/etcd"
 	"net"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/OpenNHP/opennhp/nhp/etcd"
 
 	"github.com/OpenNHP/opennhp/nhp/common"
 	"github.com/OpenNHP/opennhp/nhp/core"
@@ -92,7 +94,7 @@ type UdpServer struct {
 	dbPeerMap      map[string]*core.UdpPeer // indexed by peer's public key base64 string
 
 	// etcd client
-	etcdConn *etcd.EtcdConn
+	etcdConn                *etcd.EtcdConn
 	remoteConfigUpdateMutex sync.Mutex
 }
 
@@ -237,12 +239,16 @@ func (s *UdpServer) Start(dirPath string, logLevel int) (err error) {
 	s.device.Start()
 
 	// start server routines
-	s.wg.Add(5)
+	s.wg.Add(3)
 	go s.tokenStoreRefreshRoutine()
 	go s.BlockAddrRefreshRoutine()
 	go s.recvPacketRoutine()
-	go s.sendMessageRoutine()
-	go s.recvMessageRoutine()
+
+	for i := 0; i < runtime.NumCPU()*50; i++ {
+		s.wg.Add(2)
+		go s.sendMessageRoutine()
+		go s.recvMessageRoutine()
+	}
 
 	s.running.Store(true)
 	return nil
@@ -527,7 +533,7 @@ func (s *UdpServer) connectionRoutine(conn *UdpConn) {
 				transactionId := pkt.Counter()
 				transaction := s.device.FindLocalTransaction(transactionId)
 				if transaction != nil {
-					transaction.NextPacketCh <- pkt
+					transaction.NextPacket(pkt)
 					continue
 				}
 			}
@@ -622,7 +628,7 @@ func (s *UdpServer) sendMessageRoutine() {
 				// forward to a specific transaction
 				transaction := md.ConnData.FindRemoteTransaction(md.PrevParserData.SenderTrxId)
 				if transaction != nil {
-					transaction.NextMsgCh <- md
+					transaction.NextMsg(md)
 					continue
 				}
 			}
@@ -656,7 +662,7 @@ func (s *UdpServer) recvMessageRoutine() {
 			switch ppd.HeaderType {
 			case core.NHP_KNK, core.NHP_RKN, core.NHP_EXT:
 				// aynchronously process knock messages with ack response
-				go s.HandleKnockRequest(ppd)
+				s.HandleKnockRequest(ppd)
 
 			case core.NHP_AOL:
 				// synchronously block and deal with NHP_DOL to ensure future ac messages will be correctly processed. Don't use go routine
@@ -666,15 +672,15 @@ func (s *UdpServer) recvMessageRoutine() {
 				s.HandleDBOnline(ppd)
 
 			case core.NHP_OTP:
-				go s.HandleOTPRequest(ppd)
+				s.HandleOTPRequest(ppd)
 
 			case core.NHP_REG:
-				go s.HandleRegisterRequest(ppd)
+				s.HandleRegisterRequest(ppd)
 
 			case core.NHP_LST:
-				go s.HandleListRequest(ppd)
+				s.HandleListRequest(ppd)
 			case core.NHP_DAR:
-				go s.HandleDHPDARMessage(ppd)
+				s.HandleDHPDARMessage(ppd)
 			case core.NHP_DRG:
 				go s.HandleDHPDRGMessage(ppd)
 			case core.NHP_DAV:
@@ -1102,7 +1108,6 @@ func (s *UdpServer) ProcessDataPrivateKeyWrapping(dwrMsg *common.DWRMsg, conn *D
 	// block until transaction completes
 	dbPpd := <-dwrMd.ResponseMsgCh
 	close(dwrMd.ResponseMsgCh)
-
 
 	err = json.Unmarshal(dbPpd.BodyMessage, dwaMsg)
 	if err != nil {

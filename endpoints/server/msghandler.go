@@ -19,8 +19,6 @@ import (
 // HandleOTPRequest
 // Server will not respond to agent's otp request
 func (s *UdpServer) HandleOTPRequest(ppd *core.PacketParserData) (err error) {
-	defer s.wg.Done()
-	s.wg.Add(1)
 
 	transactionId := ppd.SenderTrxId
 	addrStr := ppd.ConnData.RemoteAddr.String()
@@ -58,8 +56,6 @@ func (s *UdpServer) HandleOTPRequest(ppd *core.PacketParserData) (err error) {
 // HandleRegisterRequest
 // Server will respond with success or error with NHP_RAK message
 func (s *UdpServer) HandleRegisterRequest(ppd *core.PacketParserData) (err error) {
-	defer s.wg.Done()
-	s.wg.Add(1)
 
 	transactionId := ppd.SenderTrxId
 	addrStr := ppd.ConnData.RemoteAddr.String()
@@ -122,7 +118,7 @@ func (s *UdpServer) HandleRegisterRequest(ppd *core.PacketParserData) (err error
 		return err
 	}
 
-	transaction.NextMsgCh <- rakMd
+	transaction.NextMsg(rakMd)
 
 	return err
 }
@@ -130,8 +126,6 @@ func (s *UdpServer) HandleRegisterRequest(ppd *core.PacketParserData) (err error
 // HandleListRequest
 // Server will respond with success or error with NHP_LRT message
 func (s *UdpServer) HandleListRequest(ppd *core.PacketParserData) (err error) {
-	defer s.wg.Done()
-	s.wg.Add(1)
 
 	transactionId := ppd.SenderTrxId
 	addrStr := ppd.ConnData.RemoteAddr.String()
@@ -192,14 +186,12 @@ func (s *UdpServer) HandleListRequest(ppd *core.PacketParserData) (err error) {
 		return err
 	}
 
-	transaction.NextMsgCh <- ackMd
+	transaction.NextMsg(ackMd)
 
 	return err
 }
 
 func (s *UdpServer) HandleACOnline(ppd *core.PacketParserData) (err error) {
-	defer s.wg.Done()
-	s.wg.Add(1)
 
 	transactionId := ppd.SenderTrxId
 	addrStr := ppd.ConnData.RemoteAddr.String()
@@ -252,8 +244,7 @@ func (s *UdpServer) HandleACOnline(ppd *core.PacketParserData) (err error) {
 		return err
 	}
 
-	transaction.NextMsgCh <- aakMd
-
+	transaction.NextMsg(aakMd)
 	return nil
 }
 
@@ -399,8 +390,8 @@ func (s *UdpServer) HandleDHPDAVMessage(ppd *core.PacketParserData) (err error) 
 		teePublicKey, consumerEphemeralPublicKey := s.GetTeePublicKeyBase64AndConsumerEphemeralPublicKeyBase64(ppd.RemotePubKey)
 
 		dwrMsg := &common.DWRMsg{
-			DoId: doId,
-			TeePublicKey: teePublicKey,
+			DoId:                       doId,
+			TeePublicKey:               teePublicKey,
 			ConsumerEphemeralPublicKey: consumerEphemeralPublicKey,
 		}
 
@@ -443,7 +434,7 @@ func (s *UdpServer) HandleDHPDAVMessage(ppd *core.PacketParserData) (err error) 
 		return err
 	}
 
-	transaction.NextMsgCh <- aakMd
+	transaction.NextMsg(aakMd)
 
 	return nil
 }
@@ -498,7 +489,8 @@ func (s *UdpServer) HandleDHPDRGMessage(ppd *core.PacketParserData) (err error) 
 		err = common.ErrTransactionIdNotFound
 		return err
 	}
-	transaction.NextMsgCh <- aakMd
+
+	transaction.NextMsg(aakMd)
 	return nil
 }
 
@@ -596,5 +588,3 @@ func ReadZdtoConfig(doId string) (common.DRGMsg, error) {
 	}
 	return config, nil
 }
-
-
