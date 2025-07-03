@@ -36,6 +36,8 @@ type Config struct {
 	LogLevel            int             `json:"logLevel"`
 	DefaultCipherScheme int             `json:"defaultCipherScheme"`
 	FilterMode          int             `json:"filterMode"`
+	IpForwardExtra      string          `json:"ipforwardextra"`
+	ForwardExtraEnable  int             `json:"forwardextraenable"`
 }
 
 type HttpConfig struct {

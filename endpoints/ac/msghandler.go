@@ -167,6 +167,18 @@ func (a *UdpAC) HandleAccessControl(au *common.AgentUser, srcAddrs []*common.Net
 							artMsg.ErrMsg = err.Error()
 							return
 						}
+
+						if a.config.ForwardExtraEnable == 1 {
+							_, err = a.ipset.Add_exta(ipType, 1, openTimeSec, a.config.IpForwardExtra)
+							if err != nil {
+								log.Error("[HandleAccessControl] add ipset %s error: %v", a.config.IpForwardExtra, err)
+								err = common.ErrACIPSetOperationFailed
+								artMsg.ErrCode = common.ErrACIPSetOperationFailed.ErrorCode()
+								artMsg.ErrMsg = err.Error()
+								return
+							}
+						}
+
 					case FilterMode_EBPFXDP:
 						if len(dstAddr.Protocol) == 0 || dstAddr.Protocol == "any" {
 							ebpfHashStr := ebpf.EbpfRuleParams{
@@ -215,6 +227,17 @@ func (a *UdpAC) HandleAccessControl(au *common.AgentUser, srcAddrs []*common.Net
 							artMsg.ErrMsg = err.Error()
 							return
 						}
+
+						if a.config.ForwardExtraEnable == 1 {
+							_, err = a.ipset.Add_exta(ipType, 1, openTimeSec, a.config.IpForwardExtra)
+							if err != nil {
+								log.Error("[HandleAccessControl] add ipset %s error: %v", a.config.IpForwardExtra, err)
+								err = common.ErrACIPSetOperationFailed
+								artMsg.ErrCode = common.ErrACIPSetOperationFailed.ErrorCode()
+								artMsg.ErrMsg = err.Error()
+								return
+							}
+						}
 					case FilterMode_EBPFXDP:
 						if len(dstAddr.Protocol) == 0 || dstAddr.Protocol == "any" {
 							ebpfHashStr := ebpf.EbpfRuleParams{
@@ -261,6 +284,17 @@ func (a *UdpAC) HandleAccessControl(au *common.AgentUser, srcAddrs []*common.Net
 								artMsg.ErrMsg = err.Error()
 								return
 							}
+
+							if a.config.ForwardExtraEnable == 1 {
+								_, err = a.ipset.Add_exta(ipType, 1, openTimeSec, a.config.IpForwardExtra)
+								if err != nil {
+									log.Error("[HandleAccessControl] add ipset %s error: %v", a.config.IpForwardExtra, err)
+									err = common.ErrACIPSetOperationFailed
+									artMsg.ErrCode = common.ErrACIPSetOperationFailed.ErrorCode()
+									artMsg.ErrMsg = err.Error()
+									return
+								}
+							}
 						case FilterMode_EBPFXDP:
 							ebpfHashStr := ebpf.EbpfRuleParams{
 								SrcIP: srcAddr.Ip,
@@ -289,6 +323,9 @@ func (a *UdpAC) HandleAccessControl(au *common.AgentUser, srcAddrs []*common.Net
 								netHashStr = fmt.Sprintf("%s,1-65535", netStr)
 							}
 							_, err = a.ipset.Add(ipType, 4, tempOpenTimeSec, netHashStr)
+							if a.config.ForwardExtraEnable == 1 {
+								_, err = a.ipset.Add_exta(ipType, 1, openTimeSec, a.config.IpForwardExtra)
+							}
 						}
 
 						if len(dstAddr.Protocol) == 0 || dstAddr.Protocol == "udp" || dstAddr.Protocol == "any" {
@@ -297,11 +334,18 @@ func (a *UdpAC) HandleAccessControl(au *common.AgentUser, srcAddrs []*common.Net
 								netHashStr = fmt.Sprintf("%s,udp:1-65535", netStr)
 							}
 							_, err = a.ipset.Add(ipType, 4, tempOpenTimeSec, netHashStr)
+							if a.config.ForwardExtraEnable == 1 {
+								_, err = a.ipset.Add_exta(ipType, 1, openTimeSec, a.config.IpForwardExtra)
+							}
 						}
 
 						if dstAddr.Port == 0 && (len(dstAddr.Protocol) == 0 || dstAddr.Protocol == "any") {
 							netHashStr := fmt.Sprintf("%s,icmp:8/0", netStr)
 							_, err = a.ipset.Add(ipType, 4, tempOpenTimeSec, netHashStr)
+							if a.config.ForwardExtraEnable == 1 {
+								_, err = a.ipset.Add_exta(ipType, 1, openTimeSec, a.config.IpForwardExtra)
+
+							}
 						}
 
 					case FilterMode_EBPFXDP:
@@ -522,6 +566,17 @@ func (a *UdpAC) HandleAccessControl(au *common.AgentUser, srcAddrs []*common.Net
 				artMsg.ErrCode = common.ErrACIPSetOperationFailed.ErrorCode()
 				artMsg.ErrMsg = err.Error()
 				return
+			}
+
+			if a.config.ForwardExtraEnable == 1 {
+				_, err = a.ipset.Add_exta(ipType, 1, openTimeSec, a.config.IpForwardExtra)
+				if err != nil {
+					log.Error("[HandleAccessControl] add ipset %s error: %v", a.config.IpForwardExtra, err)
+					err = common.ErrACIPSetOperationFailed
+					artMsg.ErrCode = common.ErrACIPSetOperationFailed.ErrorCode()
+					artMsg.ErrMsg = err.Error()
+					return
+				}
 			}
 		case FilterMode_EBPFXDP:
 			ebpfHashStr := ebpf.EbpfRuleParams{

@@ -335,3 +335,15 @@ func (ipset *IPSet) Run(ctx context.Context, args ...string) (string, error) {
 	}
 	return stdout.String(), nil
 }
+
+func (ipset *IPSet) Add_exta(ipType IPTYPE, t int, expire int, args ...string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.TODO(), 2*time.Second)
+	defer cancel()
+
+	name := "forward_extra_set"
+	params := append([]string{"add", "-exist", name}, args...)
+	params = append(params, "timeout", fmt.Sprintf("%d", expire))
+
+	log.Debug("Execute ipset: ipset %s", params)
+	return ipset.Run(ctx, params...)
+}

@@ -22,3 +22,5 @@ LogLevel = 4
 AuthServiceId = "example"
 ResourceIds = ["demo"]
 FilterMode = 0
+IpForwardExtra = "192.168.1.100"
+ForwardExtraEnable = 1
