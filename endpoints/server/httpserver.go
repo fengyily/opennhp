@@ -287,7 +287,8 @@ func corsMiddleware() gin.HandlerFunc {
 		// HTTP headers for CORS
 		origin := c.GetHeader("Origin")
 		if len(origin) == 0 {
-			origin = "*"
+			host := c.Request.Host
+			origin = "https://" + host
 		}
 		c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
 		//c.Writer.Header().Set("Access-Control-Allow-Origin", "*")                   // allow cross-origin resource sharing
