@@ -18,6 +18,8 @@ import (
 	"github.com/OpenNHP/opennhp/nhp/log"
 	"github.com/OpenNHP/opennhp/nhp/plugins"
 	"github.com/OpenNHP/opennhp/nhp/version"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 )
 
@@ -58,15 +60,21 @@ func (hs *HttpServer) Start(us *UdpServer, hc *HttpConfig) error {
 		netIP = net.IPv4zero // will both listen on ipv4 0.0.0.0:port and ipv6 [::]:port
 	}
 
+	listenPort := us.listenAddr.Port // use the same port as udp server if HttpListenPort is not specified
+	if hc.HttpListenPort > 0 && hc.HttpListenPort < 65536 {
+		listenPort = hc.HttpListenPort
+	}
 	hs.listenAddr = &net.TCPAddr{
 		IP:   netIP,
-		Port: us.listenAddr.Port, // use the same port as udp server
+		Port: listenPort,
 	}
 
 	hs.signals.stop = make(chan struct{})
 
 	gin.SetMode(gin.ReleaseMode)
 	hs.ginEngine = gin.New()
+	store := cookie.NewStore([]byte("nhpstore"))
+	hs.ginEngine.Use(sessions.Sessions("nhpsessions", store))
 	hs.ginEngine.Use(corsMiddleware())
 	hs.ginEngine.Use(gin.LoggerWithWriter(us.log.Writer()))
 	hs.ginEngine.Use(gin.Recovery())
@@ -253,6 +261,10 @@ func (hs *HttpServer) initRouter() {
 		}
 		hs.legacyAuthWithAspPlugin(ctx, req)
 	})
+
+	hs.initStorageRouter()
+
+	hs.initKbsRouter()
 
 	/*
 		refreshGrp := g.Group("refresh")
