@@ -282,7 +282,7 @@ static __always_inline int xdp_white_prog(struct xdp_md *ctx) {
             return XDP_DROP;
 
         struct tcphdr *tcp = tcp_start;
-        if (__constant_htons(tcp->dest) == 22) {
+        if (__constant_htons(tcp->dest) == 22 || __constant_htons(tcp->dest) == 62888) {
             return XDP_PASS;
         }
     }
