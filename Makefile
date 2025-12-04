@@ -31,6 +31,10 @@ END_COLOUR=\033[0m
 # Plugins
 NHP_SERVER_PLUGINS = ./endpoints/server/plugins
 
+# Android environment settings
+ANDROID_CC='${TOOLCHAIN}/bin/aarch64-linux-android21-clang'
+ANDROID_CXX='${TOOLCHAIN}/bin/aarch64-linux-android21-clang++'
+
 # eBPF compile
 ifneq (,$(findstring ebpf,$(MAKECMDGOALS)))
     CLANG := $(shell command -v clang 2>/dev/null)
@@ -39,21 +43,27 @@ ifneq (,$(findstring ebpf,$(MAKECMDGOALS)))
     endif
 endif
 
-EBPF_SRC = ./nhp/ebpf/xdp/nhp_ebpf_xdp.c
-EBPF_OBJ = ./release/nhp-ac/etc/nhp_ebpf_xdp.o
+EBPF_SRC_XDP = ./nhp/ebpf/xdp/nhp_ebpf_xdp.c
+EBPF_SRC_TC_EGRESS = ./nhp/ebpf/xdp/tc_egress.c
+EBPF_OBJ_XDP = ./release/nhp-ac/etc/nhp_ebpf_xdp.o
+EBPF_OBJ_TC_EGRESS = ./release/nhp-ac/etc/tc_egress.o
 CLANG_OPTS = -O2 -target bpf -g -Wall -I.
 
 .PHONY: ebpf
-ebpf: $(EBPF_OBJ) generate-version-and-build
+ebpf: $(EBPF_OBJ_XDP) $(EBPF_OBJ_TC_EGRESS) generate-version-and-build
 	@echo "$(COLOUR_GREEN)[eBPF] Full build completed$(END_COLOUR)"
 
-$(EBPF_OBJ): $(EBPF_SRC)
+$(EBPF_OBJ_XDP): $(EBPF_SRC_XDP)
 	@mkdir -p $(@D)
 	@echo "$(COLOUR_BLUE)[eBPF] Compiling: $< -> $@ $(END_COLOUR)"
-	$(CLANG) $(CLANG_OPTS) -c $(EBPF_SRC) -o $(EBPF_OBJ)
+	$(CLANG) $(CLANG_OPTS) -c $(EBPF_SRC_XDP) -o $(EBPF_OBJ_XDP)
+$(EBPF_OBJ_TC_EGRESS): $(EBPF_SRC_TC_EGRESS)
+	@mkdir -p $(@D)
+	@echo "$(COLOUR_BLUE)[eBPF] Compiling: $< -> $@ $(END_COLOUR)"
+	$(CLANG) $(CLANG_OPTS) -c $(EBPF_SRC_TC_EGRESS) -o $(EBPF_OBJ_TC_EGRESS)
 
 clean_ebpf:
-	@rm -f $(EBPF_OBJ)
+	@rm -f $(EBPF_OBJ_XDP) $(EBPF_OBJ_TC_EGRESS)
 	@echo "$(COLOUR_GREEN)[Clean] Removed eBPF object file$(END_COLOUR)"
 
 generate-version-and-build:
@@ -68,7 +78,10 @@ generate-version-and-build:
 	@$(MAKE) serverd
 	@$(MAKE) db
 	@$(MAKE) kgc
-	@$(MAKE) agentsdk
+	@$(MAKE) linuxagentsdk
+	@$(MAKE) androidagentsdk
+	@$(MAKE) macosagentsdk
+	@$(MAKE) iosagentsdk
 	@$(MAKE) devicesdk
 	@$(MAKE) plugins
 	@$(MAKE) archive
@@ -114,13 +127,45 @@ kgc:
 	mkdir -p ../release/nhp-kgc/etc; \
 	cp ./kgc/main/etc/*.toml ../release/nhp-kgc/etc/
 
-agentsdk:
-	@echo "$(COLOUR_BLUE)[OpenNHP] Building agent SDK... $(END_COLOUR)"
+linuxagentsdk:
+	@echo "$(COLOUR_BLUE)[OpenNHP] Building Linux agent SDK... $(END_COLOUR)"
 ifeq ($(OS_NAME), linux)
 	cd endpoints && \
-	go build -a -trimpath -buildmode=c-shared -ldflags ${LD_FLAGS} -v -o ../release/nhp-agent/nhp-agent.so ./agent/main/main.go ./agent/main/export.go && \
-	gcc ./agent/sdkdemo/nhp-agent-demo.c -I ../release/nhp-agent -l:nhp-agent.so -L../release/nhp-agent -Wl,-rpath=. -o ../release/nhp-agent/nhp-agent-demo
+	go build -a -trimpath -buildmode=c-shared -ldflags ${LD_FLAGS} -v -o ../release/nhp-agent/nhp-agent.so ./agent/main/main.go ./agent/main/export.go
 endif
+
+androidagentsdk:
+	@echo "$(COLOUR_BLUE)[OpenNHP] Building Android agent SDK... $(END_COLOUR)"
+ifeq ($(OS_NAME), linux)
+    ifeq ($(TOOLCHAIN),)
+		@echo "Android NDK is not installed. Please install Android NDK to compile Android SDK."
+    else
+		cd endpoints && \
+		GOOS=android GOARCH=arm64 CGO_ENABLED=1 \
+		CC=${ANDROID_CC} CXX=${ANDROID_CXX} \
+		go build -a -trimpath -buildmode=c-shared -ldflags ${LD_FLAGS} -v -o ../release/nhp-agent/libnhpagent.so ./agent/main/main.go ./agent/main/export.go
+    endif
+endif
+
+
+macosagentsdk:
+	@echo "$(COLOUR_BLUE)[OpenNHP] Building MacOS agent SDK... $(END_COLOUR)"
+ifeq ($(OS_NAME), darwin)
+ifeq (, $(shell which gomobile))
+	$(error "No gomobile in $(PATH), consider doing `go install golang.org/x/mobile/cmd/gomobile@latest`")
+endif
+	cd endpoints && \
+	GOOS=darwin GOARCH=arm64 CGO_ENABLED=1 \
+	go build -a -trimpath -buildmode=c-shared -ldflags ${LD_FLAGS} -v -o ../release/nhp-agent/nhp-agent.dylib ./agent/main/main.go ./agent/main/export.go
+endif
+
+iosagentsdk:
+	@echo "$(COLOUR_BLUE)[OpenNHP] Building IOS agent SDK... $(END_COLOUR)"
+ifeq ($(OS_NAME), darwin)
+	cd endpoints && \
+	gomobile bind -target ios -o ../release/nhp-agent/nhpagent.xcframework ./agent/iossdk
+endif
+
 
 devicesdk:
 	@echo "$(COLOUR_BLUE)[OpenNHP] Building nhp SDK... $(END_COLOUR)"
@@ -143,4 +188,4 @@ archive:
 	@cd release && mkdir -p archive && tar -czvf ./archive/$(PACKAGE_FILE) nhp-agent nhp-ac nhp-db nhp-server
 	@echo "$(COLOUR_GREEN)[OpenNHP] Package ${PACKAGE_FILE} archived!$(END_COLOUR)"
 
-.PHONY: all generate-version-and-build init agentd acd serverd db agentsdk devicesdk plugins test archive ebpf clean_ebpf
+.PHONY: all generate-version-and-build init agentd acd serverd db linuxagentsdk androidagentsdk macosagentsdk iosagentsdk devicesdk plugins test archive ebpf clean_ebpf
