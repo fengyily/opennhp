@@ -209,6 +209,9 @@ The Single Packet Authorization (SPA) protocol is included in the [Software Defi
 
 We welcome contributions to OpenNHP! Please see our [Contributing Guidelines](CONTRIBUTING.md) for more information on how to get involved.
 
+## Sponsors
+
+<a href="https://layerv.ai"><img src="docs/images/layerv_logo.png" width="200" alt="LayerV.ai"></a>
 
 ## License
 
@@ -218,10 +221,10 @@ OpenNHP is released under the [Apache 2.0 License](LICENSE).
 ## Contact
 
 - Project Website: [https://github.com/OpenNHP/opennhp](https://github.com/OpenNHP/opennhp)
-- Email: [opennhp@gmail.com](mailto:opennhp@gmail.com)
-- Slack Channel: [Join our Slack](https://slack.opennhp.org)
+- Email: [support@opennhp.org](mailto:support@opennhp.org)
+- Slack Channel: [Join our Slack](https://opennhp.slack.com/)
 
-For more detailed documentation, please visit our [Official Documentation](https://opennhp.org).
+For more detailed documentation, please visit our [Official Documentation](https://docs.opennhp.org).
 
 
 ## References

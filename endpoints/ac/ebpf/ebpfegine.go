@@ -69,7 +69,7 @@ func init() {
 
 	now := time.Now()
 	bootTime = now.Add(-time.Duration(info.Uptime) * time.Second)
-	log.Info("??System boot time: %v", bootTime)
+	log.Info("​​System boot time: %v", bootTime)
 }
 
 func EbpfEngineLoad(dirPath string, logLevel int, acId string) error {
