@@ -1,18 +1,73 @@
-FROM opennhp-base:latest AS builder
+# Stage 1: Build environment (inline base image for CI/CD compatibility)
+FROM ubuntu:22.04 AS builder
+
+# Get target platform architecture
+ARG TARGETARCH
+ARG TARGETOS=linux
+
+# Install basic tools
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    wget \
+    ca-certificates \
+    clang \
+    iptables \
+    tcpdump \
+    ipset \
+    git \
+    vim \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set Go version
+ENV GO_VERSION=1.21.2
+
+# Set Go download URL based on architecture
+RUN case "${TARGETARCH:-amd64}" in \
+    "amd64") \
+        GO_ARCH="linux-amd64" \
+        ;; \
+    "arm64") \
+        GO_ARCH="linux-arm64" \
+        ;; \
+    "arm") \
+        GO_ARCH="linux-armv6l" \
+        ;; \
+    *) \
+        echo "Unsupported architecture: ${TARGETARCH}" && exit 1 \
+        ;; \
+    esac && \
+    wget https://golang.org/dl/go${GO_VERSION}.${GO_ARCH}.tar.gz -O /tmp/go.tar.gz && \
+    tar -C /usr/local -xzf /tmp/go.tar.gz && \
+    rm /tmp/go.tar.gz
+
+# Set Go environment variables
+ENV PATH="/usr/local/go/bin:${PATH}"
+ENV GOPATH=/go
+ENV PATH="${GOPATH}/bin:${PATH}"
+ENV CGO_ENABLED=1
+ENV GOPROXY=https://goproxy.cn,direct
+
+# Verify installations
+RUN go version && \
+    gcc --version && \
+    make --version
+
+# Stage 2: Build application
 WORKDIR /nhp-server
 
 COPY . .
 
-RUN echo "Building for architecture: ${TARGETARCH}"
-##
-ENV GOPROXY=https://goproxy.cn,direct
+RUN echo "Building for architecture: ${TARGETARCH:-amd64}"
 
-RUN cd /nhp-server &&  make init acd test
+RUN cd /nhp-server && make init acd test
 
-FROM ubuntu:22.04  AS runtime
+# Stage 3: Runtime environment
+FROM ubuntu:22.04 AS runtime
+
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
-    apt-get install -y  wget \
+    apt-get install -y wget \
     ca-certificates \
     iptables \
     tcpdump \
@@ -49,4 +104,3 @@ RUN if [ "$(uname -m)" = "x86_64" ]; then \
 
 ENTRYPOINT ["/bin/sh", "-c"]
 CMD ["/iptables_defaults.sh && cd /opt/traefik/ && nohup ./traefik --configFile=traefik.toml 2>&1 & -- & /nhp-ac/nhp-acd run"]
-#ENTRYPOINT ["/nhp-ac/nhp-acd", "run"]
