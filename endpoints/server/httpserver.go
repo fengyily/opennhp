@@ -297,7 +297,13 @@ func (hs *HttpServer) initRouter() {
 func corsMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// HTTP headers for CORS
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")                   // allow cross-origin resource sharing
+		origin := c.GetHeader("Origin")
+		if len(origin) == 0 {
+			host := c.Request.Host
+			origin = "https://" + host
+		}
+		c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+		//c.Writer.Header().Set("Access-Control-Allow-Origin", "*")                   // allow cross-origin resource sharing
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS, POST") // methods
 		c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Type, Content-Length, Set-Cookie")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Authorization, X-NHP-Ver, Cookie")
@@ -307,7 +313,7 @@ func corsMiddleware() gin.HandlerFunc {
 		c.Writer.Header().Set("Access-Control-NHP-Ver", version.Version+"/"+version.CommitId)
 
 		if c.Request.Method == "OPTIONS" {
-			c.Status(http.StatusOK)
+			c.Status(http.StatusNoContent)
 			return
 		}
 

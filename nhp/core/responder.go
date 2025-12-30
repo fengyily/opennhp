@@ -247,7 +247,7 @@ func (ppd *PacketParserData) validatePeer() (err error) {
 		aead = AeadFromKey(ppd.Ciphers.GcmType, &key)
 		_, err = aead.Open(peerPk[:0], ppd.header.NonceBytes(), ppd.header.StaticBytes(), ppd.chainHash.Sum(nil))
 		if err != nil {
-			log.Error("failed to decrypt peer pubkey")
+			log.Error("failed to decrypt peer pubkey err: %s", err.Error())
 			return err
 		}
 	}

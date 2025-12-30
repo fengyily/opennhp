@@ -71,7 +71,8 @@ if [ $? -ne 0 ]; then
 fi
 
 # ssh
-iptables -C INPUT -p tcp --dport 22  -j ACCEPT > /dev/null 2>&1
+# 允许SSH端口22
+iptables -C INPUT -p tcp --dport 22 -j ACCEPT > /dev/null 2>&1
 if [ $? -ne 0 ]; then
     iptables -I INPUT -p tcp --dport 22  -j ACCEPT
 fi
@@ -134,21 +135,22 @@ iptables -P FORWARD DROP
 LOCAL_IP=$(ip route get 1 | awk '{print $7;exit}')
 [ -z "$LOCAL_IP" ] && LOCAL_IP=$(hostname -I | awk '{print $1}')
 
+NHP_LOG_DIR="/var/log/nhp"
+
 if [ -d /etc/rsyslog.d ] && [ ! -f /etc/rsyslog.d/10-nhplog.conf ]; then
     echo "Setting up rsyslog with dynamic IP..."
-    mkdir -p $CURRENT_DIR/logs
-    chown $(whoami):$(id -gn) $CURRENT_DIR/logs
-    chmod -R 755 $CURRENT_DIR/logs/
-    setenforce 
+    mkdir -p $NHP_LOG_DIR
+    chown syslog:adm $NHP_LOG_DIR
+    chmod 755 $NHP_LOG_DIR
     echo 'template(name="NHPFormat" type="string" string="%timegenerated:8:19% '"${LOCAL_IP}"' %syslogtag% %msg:::drop-last-lf%\n")
-template(name="NHPAcceptFile" type="string" string="'"$CURRENT_DIR"'/logs/nhp_accept-%$YEAR%-%$MONTH%-%$DAY%.log")
-template(name="NHPForwardFile" type="string" string="'"$CURRENT_DIR"'/logs/nhp_forward-%$YEAR%-%$MONTH%-%$DAY%.log")
-template(name="NHPDenyFile" type="string" string="'"$CURRENT_DIR"'/logs/nhp_deny-%$YEAR%-%$MONTH%-%$DAY%.log")
+template(name="NHPAcceptFile" type="string" string="'"$NHP_LOG_DIR"'/nhp_accept-%$YEAR%-%$MONTH%-%$DAY%.log")
+template(name="NHPForwardFile" type="string" string="'"$NHP_LOG_DIR"'/nhp_forward-%$YEAR%-%$MONTH%-%$DAY%.log")
+template(name="NHPDenyFile" type="string" string="'"$NHP_LOG_DIR"'/nhp_deny-%$YEAR%-%$MONTH%-%$DAY%.log")
 
 :msg,contains,"[NHP-ACCEPT]" ?NHPAcceptFile;NHPFormat
 & stop
 :msg,contains,"[NHP-FORWARD]" ?NHPForwardFile;NHPFormat
-& stopgit pu
+& stop
 :msg,contains,"[NHP-DENY]" ?NHPDenyFile;NHPFormat
 & stop' > /etc/rsyslog.d/10-nhplog.conf
 

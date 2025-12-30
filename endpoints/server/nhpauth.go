@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 
 	"github.com/OpenNHP/opennhp/nhp/common"
 	"github.com/OpenNHP/opennhp/nhp/core"
@@ -12,8 +13,12 @@ import (
 // HandleKnockRequest
 // Server will respond with success or error with NHP_ACK message
 func (s *UdpServer) HandleKnockRequest(ppd *core.PacketParserData) (err error) {
-	defer s.wg.Done()
-	s.wg.Add(1)
+	defer func() {
+		if r := recover(); r != nil {
+			log.Error("server-agent(%s#%d@%s)[HandleKnockRequest] panic: %v", ppd.SenderTrxId, ppd.ConnData.RemoteAddr.String(), r)
+			err = fmt.Errorf("recover %+v", r)
+		}
+	}()
 
 	transactionId := ppd.SenderTrxId
 	addrStr := ppd.ConnData.RemoteAddr.String()
@@ -87,7 +92,7 @@ func (s *UdpServer) HandleKnockRequest(ppd *core.PacketParserData) (err error) {
 		// perform knock auth and open ip rule from the agent src address and resource dst address
 		ackMsg, err = handler.AuthWithNHP(authReq, s.NewNhpServerHelper(ppd))
 		if err != nil {
-			log.Info("server-agent(%s#%d@%s)[HandleKnockRequest] failed: %+v", knkMsg.UserId, transactionId, addrStr, err)
+			log.Error("server-agent(%s#%d@%s)[HandleKnockRequest] failed: %+v", knkMsg.UserId, transactionId, addrStr, err)
 			return
 		}
 
@@ -118,6 +123,6 @@ func (s *UdpServer) HandleKnockRequest(ppd *core.PacketParserData) (err error) {
 		return err
 	}
 
-	transaction.NextMsgCh <- ackMd
+	transaction.NextMsg(ackMd)
 	return nil
 }
