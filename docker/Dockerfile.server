@@ -46,7 +46,9 @@ ENV PATH="/usr/local/go/bin:${PATH}"
 ENV GOPATH=/go
 ENV PATH="${GOPATH}/bin:${PATH}"
 ENV CGO_ENABLED=1
-ENV GOPROXY=https://goproxy.cn,direct
+# Use multiple Go proxies as fallback, disable HTTP/2 to avoid GOAWAY issues
+ENV GOPROXY=https://goproxy.cn,https://proxy.golang.org,direct
+ENV GODEBUG=http2client=0
 
 # Verify installations
 RUN go version && \
@@ -60,7 +62,13 @@ COPY . .
 
 RUN echo "Building for architecture: ${TARGETARCH:-amd64}"
 
-RUN cd /nhp-server && make init serverd plugins test
+# Add retry mechanism for go mod download to handle temporary network issues
+RUN cd /nhp-server && \
+    for i in 1 2 3; do \
+        echo "Attempt $i: downloading Go modules..." && \
+        make init serverd plugins test && break || \
+        { echo "Attempt $i failed, retrying in 5 seconds..."; sleep 5; }; \
+    done
 
 # Stage 3: Runtime environment
 FROM ubuntu:22.04 AS runtime
