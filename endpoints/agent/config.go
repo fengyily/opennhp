@@ -239,6 +239,7 @@ func (a *UdpAgent) updateServerPeers(file string) (err error) {
 func (a *UdpAgent) updateResources(file string) (err error) {
 	utils.CatchPanicThenRun(func() {
 		err = errLoadConfig
+		log.Error("panic in updateResources: %v", err)
 	})
 
 	content, err := os.ReadFile(file)
@@ -261,6 +262,7 @@ func (a *UdpAgent) updateResources(file string) (err error) {
 			KnockResource: *res,
 			ServerPeer:    peer,
 		}
+		log.Info("loaded resource %s with server peer %s", res.Id(), peer.PublicKeyBase64())
 	}
 
 	if a.knockTargetMap == nil {
@@ -278,6 +280,7 @@ func (a *UdpAgent) updateResources(file string) (err error) {
 		a.signals.knockTargetMapUpdated <- struct{}{}
 	}
 
+	log.Info("resource config updated, total %d resources, %+v", len(targetMap), targetMap)
 	return err
 }
 

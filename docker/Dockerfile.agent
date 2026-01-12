@@ -6,7 +6,13 @@ COPY . .
 
 RUN echo "Building for architecture: ${TARGETARCH}"
 
-RUN cd /workdir && cat Makefile && make init agentd test
+# Add retry mechanism for go mod download to handle temporary network issues
+RUN cd /workdir && cat Makefile && \
+    for i in 1 2 3; do \
+        echo "Attempt $i: downloading Go modules..." && \
+        make init agentd test && break || \
+        { echo "Attempt $i failed, retrying in 5 seconds..."; sleep 5; }; \
+    done
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \

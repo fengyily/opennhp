@@ -197,15 +197,59 @@ func (t *LocalTransaction) Run() {
 	}
 }
 
+// NextPacket is used to send a packet to the transaction for processing.
+func (t *LocalTransaction) NextPacket(pkt *Packet) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Error("Local transaction %d NextPacket panic: %v", t.transactionId, r)
+			t.connData.Device.ReleasePoolPacket(pkt)
+		}
+	}()
+
+	if t.NextPacketCh == nil {
+		log.Warning("Local transaction %d NextPacket channel is closed, discard packet", t.transactionId)
+		t.connData.Device.ReleasePoolPacket(pkt)
+		return
+	}
+
+	select {
+	case t.NextPacketCh <- pkt:
+		log.Info("Local transaction %d NextPacket channel is ready, packet sent; len=%d, cap=%d", t.transactionId, len(t.NextPacketCh), cap(t.NextPacketCh))
+	default:
+		log.Warning("Local transaction %d NextPacket channel is full, discard packet len=%d, cap=%d", t.transactionId, len(t.NextPacketCh), cap(t.NextPacketCh))
+		t.connData.Device.ReleasePoolPacket(pkt)
+	}
+}
+
 // RemoteTransaction
 func (c *ConnectionData) AddRemoteTransaction(t *RemoteTransaction) {
 	c.RemoteTransactionMutex.Lock()
 	defer c.RemoteTransactionMutex.Unlock()
 
 	c.RemoteTransactionMap[t.transactionId] = t
-
+	log.Info("AddRemoteTransaction: transaction %d added", t.transactionId)
 	c.Add(1)
 	go t.Run()
+}
+
+func (t *RemoteTransaction) NextMsg(pkt *MsgData) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Error("Remote Transaction %d NextMsg panic: %v", t.transactionId, r)
+		}
+	}()
+
+	if t.NextMsgCh == nil {
+		log.Warning("Remote Transaction %d NextMsg channel is closed, discard packet; len=%d, cap = %d", t.transactionId, len(t.NextMsgCh), cap(t.NextMsgCh))
+		return
+	}
+
+	select {
+	case t.NextMsgCh <- pkt:
+		log.Info("Remote Transaction %d NextMsg channel is ready  len=%d, cap = %d", t.transactionId, len(t.NextMsgCh), cap(t.NextMsgCh))
+	default:
+		log.Warning("Remote Transaction %d NextMsg channel is full, discard packet; len=%d, cap = %d", t.transactionId, len(t.NextMsgCh), cap(t.NextMsgCh))
+	}
 }
 
 func (c *ConnectionData) FindRemoteTransaction(id uint64) *RemoteTransaction {
@@ -219,6 +263,7 @@ func (c *ConnectionData) FindRemoteTransaction(id uint64) *RemoteTransaction {
 
 	t, found := c.RemoteTransactionMap[id]
 	if found {
+		log.Info("FindRemoteTransaction: found transaction %d", id)
 		return t
 	}
 

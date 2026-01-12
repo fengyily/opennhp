@@ -5,6 +5,7 @@
 *.so
 *.dylib
 .*
+!.github/
 # Test binary, build with `go test -c`
 *.test
 
@@ -15,3 +16,4 @@ docker/*/logs/
 go.sum
 
 release/
+.DS_Store

@@ -3,11 +3,13 @@ FROM --platform=$BUILDPLATFORM ubuntu:22.04 AS builder
 # Get target platform architecture
 ARG TARGETARCH
 ARG TARGETOS
-ARG GOPROXY=https://goproxy.cn,direct
+ARG GOPROXY=https://goproxy.cn,https://proxy.golang.org,direct
 ARG GO_VERSION=1.21.2
 
-# Set Proxy
+# Set Proxy with multiple fallback sources
 ENV GOPROXY=${GOPROXY}
+# Disable HTTP/2 to avoid GOAWAY issues with Go proxy
+ENV GODEBUG=http2client=0
 
 # Install basic tools
 RUN apt-get update && \

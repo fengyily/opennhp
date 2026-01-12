@@ -11,6 +11,14 @@ volumes:
 services:
   nhp-server:
     image: opennhp-server
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
     build: 
       context: ..
       dockerfile: ./docker/Dockerfile.server
